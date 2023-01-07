@@ -1,7 +1,6 @@
 JAVA_UNICODE_ESCAPE=true;
-
 DEFAULT_LEXICAL_STATE=JAVA;
-BASE_NAME="";
+BASE_NAME="Beanshell";
 PARSER_PACKAGE=bsh.parser;
 NODE_PACKAGE=bsh.tree;
 ENSURE_FINAL_EOL=true;
@@ -28,35 +27,59 @@ UNPARSED : /* COMMENTS */
 ;
 
 
-TOKEN : /* OPERATORS */
-  < GTX: "@gt" >
-| < LTX: "@lt" >
-| < LEX: "@lteq" >
-| < GEX: "@gteq" >
-| < BOOL_ORX: "@or" >
-| < BOOL_ANDX: "@and" >
-| < BIT_ANDX: "@bitwise_and" >
-| < BIT_ORX: "@bitwise_or" >
-| < XORX: "@bitwise_xor" >
-| < MODX: "@mod" >
-| < POWERX: "@pow" >
-| < LSHIFTX: "@left_shift" >
-| < RSIGNEDSHIFTX: "@right_shift" >
-| < RUNSIGNEDSHIFTX: "@right_unsigned_shift" >
-| < ANDASSIGNX: "@and_assign" >
-| < ORASSIGNX: "@or_assign" >
-| < XORASSIGNX: "@xor_assign" >
-| < MODASSIGNX: "@mod_assign" >
-| < POWERASSIGNX: "@pow_assign" >
-| < LSHIFTASSIGNX: "@left_shift_assign" >
-| < RSIGNEDSHIFTASSIGNX: "@right_shift_assign" >
-| < RUNSIGNEDSHIFTASSIGNX: "@right_unsigned_shift_assign" >
-| < SPACESHIP: "<=>" >
-| < NULLCOALESCEASSIGN: "??=" >
-| < NULLCOALESCE: "??" >
-| < ELVIS: "?:" >
+TOKEN #Operator :
+  < GT: ">" | "@gt" >
+  | 
+  < LT: "<" | "@lt" >
+  | 
+  < LE: "<=" | "@lteq" >
+  | 
+  < GE: ">=" | "@gteq" >
+  | 
+  < SC_OR : "||" | "@or" >
+  | 
+  < SC_AND : "&&" | "@and" >
+  | 
+  < BIT_AND: "&" | "@bitwise_and" >
+  | 
+  < BIT_OR: "|" | "@bitwise_or" >
+  | 
+  < XOR: "^" | "@bitwise_xor" >
+  | 
+  < REM : "%" | "@mod" >
+  | 
+  < POWER: "**" | "@pow" >
+  | 
+  < LSHIFT: "<<" | "@left_shift" >
+  | 
+  < RSIGNEDSHIFT: ">>" | "@right_shift" >
+  | 
+  < RUNSIGNEDSHIFT: ">>" | "@right_unsigned_shift" >
+  | 
+  < ANDASSIGN: "&=" | "@and_assign" >
+  | 
+  < ORASSIGN: "|=" | "@or_assign" >
+  | 
+  < XORASSIGN: "^=" | "@xor_assign" >
+  | 
+  < REMASSIGN: "%=" | "@mod_assign" >
+  | 
+  < POWERASSIGN: "**=" | "@pow_assign" >
+  | 
+  < LSHIFTASSIGN: "<<=" | "@left_shift_assign" >
+  | 
+  < RSIGNEDSHIFTASSIGN: ">>=" | "@right_shift_assign" >
+  | 
+  < RUNSIGNEDSHIFTASSIGN: ">>>=" | "@right_unsigned_shift_assign" >
+  | 
+  < SPACESHIP: "<=>" >
+  | 
+  < NULLCOALESCEASSIGN: "??=" >
+  | 
+  < NULLCOALESCE: "??" >
+  | 
+  < ELVIS: "?:" >
 ;
-
 
 
 boolean Line :
@@ -64,21 +87,11 @@ boolean Line :
 //    Interpreter.debug("End of File!");
     return true;
   }
-|
+  |
   BlockStatement {
     return false;
   }
 ;
-
-AmbiguousName# :
-/*
-    A lookahead of 2 is required below since "Name" can be followed by a ".*"
-    when used in the context of an "ImportDeclaration".
-*/
-  <IDENTIFIER> 
-  ( SCAN 2 => "." <IDENTIFIER> )* 
-;
-
 
 ConditionalExpression :
   NullCoalesceElvisSpaceShipExpression [ <HOOK> Expression <COLON> ConditionalExpression]
@@ -90,37 +103,20 @@ NullCoalesceElvisSpaceShipExpression :
     ConditionalOrExpression )*
 ;
 
-AllocationExpression# :
+AllocationExpression :
+  ["new"] =>|+1 (ArrayDimsAndInits | ArrayInitializer)
+  |
+  "new" PrimitiveType =>|| ArrayDimsAndInits
+  |
+  "new" [TypeArguments] ObjectType [ PossiblyEmptyTypeArguments ]
     (
-      PrimitiveType ArrayDimensions
+      ArrayDimsAndInits
       |
-      AmbiguousName 
-      (
-        ArrayDimensions
-        |
-        InvocationArguments [ SCAN 2 => Block ]
-      )
-      |
-      ArrayDimensions
+      InvocationArguments [ ClassOrInterfaceBody ]
     )
-    |
-    ArrayDimensions
 ;
 
-ArrayDimensions# :
-    // e.g. int [4][3][][];
-  SCAN 2 =>
-  ( SCAN 2 => "[" Expression "]" )+
-  ( SCAN 2 => "[" "]" )*
-  |
-    // e.g. int [][] { {1,2}, {3,4} };
-  ( "[" "]" )+ ArrayInitializer
-  |
-    // e.g. { {1,2}, {3,4} };
-  ArrayInitializer 
-;
-
-//ArrayInitializer
+//ArrayInitializer,ArrayDimensions
 //Type
 //VariableDeclarator, VariableInitializer
 //TypedVariableDeclaration
