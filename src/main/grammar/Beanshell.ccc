@@ -1,0 +1,155 @@
+JAVA_UNICODE_ESCAPE=true;
+
+DEFAULT_LEXICAL_STATE=JAVA;
+BASE_NAME="";
+PARSER_PACKAGE=bsh.parser;
+NODE_PACKAGE=bsh.tree;
+ENSURE_FINAL_EOL=true;
+//BASE_SRC_DIR="../java";
+//NODE_DEFAULT_VOID=true;
+//NODE_PREFIX="BSH";
+//NODE_CLASS="bsh.SimpleNode";
+//PARSER_CLASS=Parser;
+
+INCLUDE JAVA
+
+SKIP : /* WHITE SPACE and TYPE PARAMATERS */
+    " " | "\t" | "\r" | "\f"
+    | "\n"
+    | < NONPRINTABLE: (["\u0000"-" ", "\u0080"-"\u00ff"])+ >
+    | < TYPE_PARAMATERS: "<" ( (~[">",";","|","&","\n","\r","="])* ("& "|">,")? )* ([">"])+ >
+;
+
+
+UNPARSED : /* COMMENTS */
+ <HASH_BANG_COMMENT: "#!" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+// | <MULTI_LINE_COMMENT:
+//    ("/***" (["*"])* | "/*") (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+;
+
+
+TOKEN : /* OPERATORS */
+  < GTX: "@gt" >
+| < LTX: "@lt" >
+| < LEX: "@lteq" >
+| < GEX: "@gteq" >
+| < BOOL_ORX: "@or" >
+| < BOOL_ANDX: "@and" >
+| < BIT_ANDX: "@bitwise_and" >
+| < BIT_ORX: "@bitwise_or" >
+| < XORX: "@bitwise_xor" >
+| < MODX: "@mod" >
+| < POWERX: "@pow" >
+| < LSHIFTX: "@left_shift" >
+| < RSIGNEDSHIFTX: "@right_shift" >
+| < RUNSIGNEDSHIFTX: "@right_unsigned_shift" >
+| < ANDASSIGNX: "@and_assign" >
+| < ORASSIGNX: "@or_assign" >
+| < XORASSIGNX: "@xor_assign" >
+| < MODASSIGNX: "@mod_assign" >
+| < POWERASSIGNX: "@pow_assign" >
+| < LSHIFTASSIGNX: "@left_shift_assign" >
+| < RSIGNEDSHIFTASSIGNX: "@right_shift_assign" >
+| < RUNSIGNEDSHIFTASSIGNX: "@right_unsigned_shift_assign" >
+| < SPACESHIP: "<=>" >
+| < NULLCOALESCEASSIGN: "??=" >
+| < NULLCOALESCE: "??" >
+| < ELVIS: "?:" >
+;
+
+
+
+boolean Line :
+  <EOF> {
+//    Interpreter.debug("End of File!");
+    return true;
+  }
+|
+  BlockStatement {
+    return false;
+  }
+;
+
+AmbiguousName# :
+/*
+    A lookahead of 2 is required below since "Name" can be followed by a ".*"
+    when used in the context of an "ImportDeclaration".
+*/
+  <IDENTIFIER> 
+  ( SCAN 2 => "." <IDENTIFIER> )* 
+;
+
+
+ConditionalExpression :
+  NullCoalesceElvisSpaceShipExpression [ <HOOK> Expression <COLON> ConditionalExpression]
+;
+
+NullCoalesceElvisSpaceShipExpression :
+  ConditionalOrExpression
+  ( ( <NULLCOALESCE> | <ELVIS> | <SPACESHIP> )
+    ConditionalOrExpression )*
+;
+
+AllocationExpression# :
+    (
+      PrimitiveType ArrayDimensions
+      |
+      AmbiguousName 
+      (
+        ArrayDimensions
+        |
+        InvocationArguments [ SCAN 2 => Block ]
+      )
+      |
+      ArrayDimensions
+    )
+    |
+    ArrayDimensions
+;
+
+ArrayDimensions# :
+    // e.g. int [4][3][][];
+  SCAN 2 =>
+  ( SCAN 2 => "[" Expression "]" )+
+  ( SCAN 2 => "[" "]" )*
+  |
+    // e.g. int [][] { {1,2}, {3,4} };
+  ( "[" "]" )+ ArrayInitializer
+  |
+    // e.g. { {1,2}, {3,4} };
+  ArrayInitializer 
+;
+
+//ArrayInitializer
+//Type
+//VariableDeclarator, VariableInitializer
+//TypedVariableDeclaration
+//Expression, AssignmentOperator <- redefined in beanshell
+//Block
+//AmbiguousName???
+//FormalParameters,FormalParameter
+//InclusiveOrExpression,AndExpression
+//ConditionalAndExpression,ConditionalOrExpression
+//InstanceOfExpression,RelationalExpression
+//AdditiveExpression,MultiplicativeExpression,PowerExpression,EqualityExpression,ShiftExpression
+//PrimaryExpression, PrimaryPrefix, PrimarySuffix
+//EnumConstant, EnumBlock
+//Arguments,ArgumentList
+//BlockStatement
+//LabeledStatement,Statement
+//FormalComment
+//UnaryExpression
+//CastExpression
+//StatementExpression
+//SwitchStatement
+//IfStatement
+//WhileStatement,DoStatement
+//ForStatement, EnhancedForStatement
+//BreakStatement
+//ContinueStatement
+//ReturnStatement
+//SynchronizedStatement
+//ThrowStatement
+// TryStatement
+// MultiCatch
+// TryWithResources
