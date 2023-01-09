@@ -31,7 +31,7 @@ package bsh;
 /**
  * This class handles both {@code while} statements and {@code do..while} statements.
  */
-class BSHWhileStatement extends SimpleNode implements ParserConstants {
+public class BSHWhileStatement extends SimpleNode implements ParserConstants {
 
     /**
      * Set by Parser, default {@code false}
@@ -39,8 +39,12 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants {
     boolean isDoStatement;
 
 
-    BSHWhileStatement(int id) {
+    public BSHWhileStatement(int id) {
         super(id);
+    }
+
+    public BSHWhileStatement() {
+        super(bsh.ParserTreeConstants.JJTWHILESTATEMENT);
     }
 
 

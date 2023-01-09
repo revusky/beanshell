@@ -5,10 +5,6 @@ PARSER_PACKAGE=bsh.congo.parser;
 NODE_PACKAGE=bsh.congo.tree;
 ENSURE_FINAL_EOL=true;
 BASE_SRC_DIR="../java";
-//NODE_DEFAULT_VOID=true;
-//NODE_PREFIX="BSH";
-//NODE_CLASS="bsh.SimpleNode";
-//PARSER_CLASS=Parser;
 
 INCLUDE JAVA
 

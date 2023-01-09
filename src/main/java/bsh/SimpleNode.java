@@ -218,13 +218,22 @@ class SimpleNode implements Node, Serializable {
     }
 
     /** {@inheritDoc} */
-    @Override
-    public int getLineNumber() { return firstToken.beginLine; }
+    //@Override
+    //public int getLineNumber() { return firstToken.beginLine; }
 
-    /** {@inheritDoc} */
+    private int lineNumber;
+    public int getLineNumber() {return this.lineNumber;}
+    public void setLineNumber(int lineNumber) {this.lineNumber = lineNumber;}
+
+
+
+    private String text;
+    public void setText(String text) {this.text = text;}
+
     @Override
     public String getText()
     {
+        if (this.text != null) return this.text;
         StringBuilder text = new StringBuilder();
         Token t = firstToken;
         while ( t!=null ) {
