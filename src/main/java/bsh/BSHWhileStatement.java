@@ -23,9 +23,6 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
 /**
@@ -37,6 +34,7 @@ public class BSHWhileStatement extends SimpleNode implements ParserConstants {
      * Set by Parser, default {@code false}
      */
     boolean isDoStatement;
+    String label;
 
 
     public BSHWhileStatement(int id) {
@@ -74,7 +72,13 @@ public class BSHWhileStatement extends SimpleNode implements ParserConstants {
             }
             Object ret = body.eval(callstack, interpreter);
             if (ret instanceof ReturnControl) {
-                switch (((ReturnControl) ret).kind) {
+                ReturnControl control = (ReturnControl)ret;
+
+                if (null != control.label)
+                    if (null == label || !label.equals(control.label))
+                        return ret;
+
+                switch (control.kind) {
                     case RETURN:
                         return ret;
 
@@ -91,6 +95,6 @@ public class BSHWhileStatement extends SimpleNode implements ParserConstants {
 
     @Override
     public String toString() {
-        return super.toString() + ": do=" + isDoStatement;
+        return super.toString() + ": " + label + ": do=" + isDoStatement;
     }
 }
